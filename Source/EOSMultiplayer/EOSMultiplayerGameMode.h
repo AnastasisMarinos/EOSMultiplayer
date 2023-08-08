@@ -13,6 +13,9 @@ class AEOSMultiplayerGameMode : public AGameModeBase
 
 public:
 	AEOSMultiplayerGameMode();
+
+public:
+	virtual void PostLogin(APlayerController* NewPlayer) override;
 };
 
 
