@@ -121,8 +121,9 @@ void UEOS_GameInstance::FindSessionAndJoin()
 		if(SessionPtrRef)
 		{
 			SessionSearch = MakeShareable(new FOnlineSessionSearch());
-			SessionSearch->QuerySettings.Set(SEARCH_LOBBIES, false, EOnlineComparisonOp::Equals);
+			SessionSearch->bIsLanQuery = false;
 			SessionSearch->MaxSearchResults = 20;
+			SessionSearch->QuerySettings.SearchParams.Empty();
 			SessionPtrRef->OnFindSessionsCompleteDelegates.AddUObject(this, &UEOS_GameInstance::OnFindSessionCompleted);
 			SessionPtrRef->FindSessions(0, SessionSearch.ToSharedRef());
 		}
@@ -139,7 +140,7 @@ void UEOS_GameInstance::OnFindSessionCompleted(bool bWasSuccesful)
 			IOnlineSessionPtr SessionPtrRef = SubsystemRef->GetSessionInterface();
 			if(SessionPtrRef)
 			{
-				if(SessionSearch->SearchResults[0].IsValid())
+				if(SessionSearch->SearchResults.Num() > 0)
 				{
 					SessionPtrRef->OnJoinSessionCompleteDelegates.AddUObject(this, &UEOS_GameInstance::OnJoinSessionCompleted);
 					SessionPtrRef->JoinSession(0, FName("MainSession"), SessionSearch->SearchResults[0]);
@@ -177,7 +178,7 @@ void UEOS_GameInstance::OnJoinSessionCompleted(FName SessionName, EOnJoinSession
 					UE_LOG(LogTemp, Error, TEXT("Session Address : %s"), *JoinAddress);
 					if(!JoinAddress.IsEmpty())
 					{
-						PlayerControllerRef->ClientTravel(JoinAddress, TRAVEL_Absolute);
+						PlayerControllerRef->ClientTravel(JoinAddress, ETravelType::TRAVEL_Absolute);
 					}
 				}
 			}

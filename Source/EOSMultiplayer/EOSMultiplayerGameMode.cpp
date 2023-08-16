@@ -21,38 +21,47 @@ AEOSMultiplayerGameMode::AEOSMultiplayerGameMode()
 void AEOSMultiplayerGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
-	if(NewPlayer)
+
+	if (NewPlayer)
 	{
-		FUniqueNetIdRepl UniqueNetIDRepl;
-		if(NewPlayer->IsLocalController())
+		FUniqueNetIdRepl UniqueNetIdRepl;
+		if (NewPlayer->IsLocalPlayerController())
 		{
-			ULocalPlayer *LocalPlayerRef = NewPlayer->GetLocalPlayer();
-			if(LocalPlayerRef)
+			ULocalPlayer* LocalPlayerRef = NewPlayer->GetLocalPlayer();
+			if (LocalPlayerRef)
 			{
-				UniqueNetIDRepl = LocalPlayerRef->GetPreferredUniqueNetId();
-			}
-			else
-			{
-				UNetConnection *RemoteNetConnectionRef = Cast<UNetConnection>(NewPlayer->Player);
-				check(IsValid(RemoteNetConnectionRef));
-				UniqueNetIDRepl = RemoteNetConnectionRef->PlayerId;
+				UniqueNetIdRepl = LocalPlayerRef->GetPreferredUniqueNetId();
 			}
 		}
 		else
 		{
-			UNetConnection *RemoteNetConnectionRef = Cast<UNetConnection>(NewPlayer->Player);
-			check(IsValid(RemoteNetConnectionRef));
-			UniqueNetIDRepl = RemoteNetConnectionRef->PlayerId;
+			UNetConnection* RemoteNetConnectionRef = Cast<UNetConnection>(NewPlayer->Player);
+			if (RemoteNetConnectionRef && IsValid(RemoteNetConnectionRef))
+			{
+				UniqueNetIdRepl = RemoteNetConnectionRef->PlayerId;
+			}
 		}
-		
-		TSharedPtr<const FUniqueNetId> UniqueNetId = UniqueNetIDRepl.GetUniqueNetId();
-		check(UniqueNetId != nullptr)
-		IOnlineSubsystem *SubsystemRef = Online::GetSubsystem(NewPlayer->GetWorld());
-		IOnlineSessionPtr SessionRef = SubsystemRef->GetSessionInterface();
-		bool bRegistrationSuccess = SessionRef->RegisterPlayer(FName("MainSession"), *UniqueNetId, false);
-		if(bRegistrationSuccess)
+
+		TSharedPtr<const FUniqueNetId> UniqueNetId = UniqueNetIdRepl.GetUniqueNetId();
+		if (UniqueNetId.IsValid())
 		{
-			UE_LOG(LogTemp, Warning, TEXT("REGISTRATION SUCCESSFUL"));
-		} 
+			IOnlineSubsystem* SubsystemRef = IOnlineSubsystem::Get();
+			if (SubsystemRef)
+			{
+				IOnlineSessionPtr SessionRef = SubsystemRef->GetSessionInterface();
+				if (SessionRef.IsValid())
+				{
+					bool bRegistrationSuccess = SessionRef->RegisterPlayer(FName("MainSession"), *UniqueNetId, false);
+					if (bRegistrationSuccess)
+					{
+						UE_LOG(LogTemp, Warning, TEXT("Registration Successful..."));
+					}
+				}
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Invalid UniqueNetId"));
+		}
 	}
 }
