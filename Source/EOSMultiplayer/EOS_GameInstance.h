@@ -35,7 +35,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category="EOS Functions")
 	void JoinSession();
 
-	//TSharedRef<FOnlineSessionSearch> SessionSearch;
+	UFUNCTION(BlueprintCallable, Category="EOS Functions")
+	void DestroySession();
+
+	TSharedPtr<FOnlineSessionSearch> SessionSearch;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="EOS Variables")
 	FString OpenLevelText;
@@ -43,6 +46,7 @@ public:
 	
 	void LoginWithEOS_Return(int32 LocalUserNum, bool bWasSuccess, const FUniqueNetId& UserID, const FString& ErrorMessage);
 	void OnCreateSessionCompleted(FName SessionName, bool bWasSuccessful);
+	void OnDestroySessionCompleted(FName SessionName, bool bWasSuccessful);
 	void OnFindSessionCompleted(bool bWasSuccesful);
 	void OnJoinSessionCompleted(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
 };
